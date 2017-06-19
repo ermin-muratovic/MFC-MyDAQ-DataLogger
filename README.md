@@ -1,11 +1,5 @@
 # MFC-MyDAQ-DataLogger
 
-Informatik2 Projekt an der FHKärnten EngIT SE B2-SS2017:
-
-MyDAQ-DataLogger als MFC-Anwendung
-
-# MFC-MyDAQ-DataLogger
-
 Informatik2 Project @ FHKärnten/EngIT/SE/B2-SS2017:
 MFC-Application "MyDAQ-DataLogger" as in NIElvismx DataLogger
 
@@ -21,7 +15,7 @@ Clone this project and execute in Visual Studio or download and start DataLogger
 ## Authors
 
 * [**Ermin Muratovic**](https://github.com/ermin-muratovic) - *owner*
-* [**Andreas Mörtlitsch](https://github.com/*) - *owner* *partner*
+* [**Andreas Mörtlitsch**](https://github.com/*) - *owner* *partner*
 
 ## License
 
