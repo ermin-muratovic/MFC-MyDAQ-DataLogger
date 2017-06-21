@@ -16,7 +16,7 @@ Clone this project and execute in Visual Studio or download and start DataLogger
 ## Authors
 
 * [**Ermin Muratovic**](https://github.com/ermin-muratovic) - *owner*
-* [**Andreas Mörtlitsch**](https://github.com/*)
+* [**Andreas Mörtlitsch**](https://github.com/Moertan)
 
 ## License
 
