@@ -1,16 +1,19 @@
 
 // MFC-MyDAQ-DataLoggerDlg.cpp: Implementierungsdatei
 //
-
 #include "stdafx.h"
 #include "MFC-MyDAQ-DataLogger.h"
 #include "MFC-MyDAQ-DataLoggerDlg.h"
 #include "afxdialogex.h"
+#include <NIDAQmx.h>
+#include <string>
+#include <list>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+using namespace std;
 
 // CAboutDlg-Dialogfeld für Anwendungsbefehl "Info"
 
@@ -58,6 +61,7 @@ CMFCMyDAQDataLoggerDlg::CMFCMyDAQDataLoggerDlg(CWnd* pParent /*=NULL*/)
 void CMFCMyDAQDataLoggerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_COMBO1, deviceCombobox);
 }
 
 BEGIN_MESSAGE_MAP(CMFCMyDAQDataLoggerDlg, CDialogEx)
@@ -98,7 +102,31 @@ BOOL CMFCMyDAQDataLoggerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Großes Symbol verwenden
 	SetIcon(m_hIcon, FALSE);		// Kleines Symbol verwenden
 
-	// TODO: Hier zusätzliche Initialisierung einfügen
+	/******************** INIT ************************/
+
+	char namesBuffer[1000] = { '\0' };
+	DAQmxGetSysDevNames(namesBuffer, 1000);
+	string names(namesBuffer);
+	list<string> devices;
+	if (names.length() > 0) {
+		std::size_t found = names.find_first_of(",");
+		while (found != std::string::npos)
+		{
+			devices.push_back(names.substr(0, found));
+			names = names.substr(found+2);
+			found = names.find_first_of(",");
+		}
+		devices.push_back(names);
+	}
+
+	list<string>::iterator it;
+	for (it = devices.begin(); it != devices.end(); it++) {
+		CA2T t((*it).c_str());
+		LPCTSTR s = t;
+		deviceCombobox.AddString(s);
+	}
+	/**************************************************/
+
 
 	return TRUE;  // TRUE zurückgeben, wenn der Fokus nicht auf ein Steuerelement gesetzt wird
 }
@@ -151,4 +179,3 @@ HCURSOR CMFCMyDAQDataLoggerDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-

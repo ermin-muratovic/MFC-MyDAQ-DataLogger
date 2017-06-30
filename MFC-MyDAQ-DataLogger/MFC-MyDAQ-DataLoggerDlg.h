@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include "afxwin.h"
+#include <string>
 
 // CMFCMyDAQDataLoggerDlg-Dialogfeld
 class CMFCMyDAQDataLoggerDlg : public CDialogEx
@@ -31,4 +32,6 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	CComboBox deviceCombobox;
 };
