@@ -65,5 +65,11 @@
     <Image Include="res\MFC-MyDAQ-DataLogger.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\start.png">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\stop.png">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
   </ItemGroup>
 </Project>

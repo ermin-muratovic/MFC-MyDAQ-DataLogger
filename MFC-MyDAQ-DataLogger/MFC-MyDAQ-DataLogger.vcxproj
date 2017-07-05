@@ -76,6 +76,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Program Files %28x86%29\Codejock Software\MFC\Xtreme ToolkitPro v17.3.0 %2830 Day Trial%29\Source;C:\Program Files %28x86%29\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files %28x86%29\Codejock Software\MFC\Xtreme ToolkitPro v17.3.0 %2830 Day Trial%29\Lib\vc140;C:\Program Files %28x86%29\National Instruments\NI-DAQ\DAQmx ANSI C Dev\lib\msvc;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -97,9 +99,11 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>NIDAQmx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -109,7 +113,7 @@
     <ResourceCompile>
       <Culture>0x0407</Culture>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Codejock Software\MFC\Xtreme ToolkitPro v17.3.0 %2830 Day Trial%29\Source;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,7 +137,7 @@
     <ResourceCompile>
       <Culture>0x0407</Culture>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\Codejock Software\MFC\Xtreme ToolkitPro v17.3.0 %2830 Day Trial%29\Source;$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -192,6 +196,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CustomGraph.h" />
     <ClInclude Include="MFC-MyDAQ-DataLogger.h" />
     <ClInclude Include="MFC-MyDAQ-DataLoggerDlg.h" />
     <ClInclude Include="MyDAQ.h" />
@@ -200,6 +205,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CustomGraph.cpp" />
     <ClCompile Include="MFC-MyDAQ-DataLogger.cpp" />
     <ClCompile Include="MFC-MyDAQ-DataLoggerDlg.cpp" />
     <ClCompile Include="MyDAQ.cpp" />
@@ -218,6 +224,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFC-MyDAQ-DataLogger.ico" />
+    <Image Include="res\start.png" />
+    <Image Include="res\stop.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
