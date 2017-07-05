@@ -368,6 +368,7 @@ UINT run(LPVOID Param) {
 		int result = dlg->myDAQ.readChannels();
 		dlg->graphComponent.setChannels(dlg->myDAQ.getChannels());
 		dlg->graphComponent.Invalidate();
+		// if(writeToFile) dlg->myDAQ.getChannels() --> write to File
 	}
 
 	return TRUE;
