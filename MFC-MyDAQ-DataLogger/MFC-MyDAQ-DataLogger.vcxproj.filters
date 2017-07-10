@@ -36,6 +36,9 @@
     <ClInclude Include="MyDAQ.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="CustomGraph.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFC-MyDAQ-DataLogger.cpp">
@@ -48,6 +51,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="MyDAQ.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomGraph.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
