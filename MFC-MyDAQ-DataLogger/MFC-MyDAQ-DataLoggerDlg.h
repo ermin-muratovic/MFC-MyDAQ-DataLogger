@@ -77,4 +77,7 @@ public:
 	afx_msg void OnDeltaposSpin3(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnCbnDropdownDevicecombo();
 	afx_msg void OnCbnSelchangeDevicecombo();
+	afx_msg void OnBnClickedButtonselectfile();
+	CEdit filePath;
+	CButton logToFileCheckbox;
 };

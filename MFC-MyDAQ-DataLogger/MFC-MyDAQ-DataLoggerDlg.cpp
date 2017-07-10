@@ -77,6 +77,8 @@ void CMFCMyDAQDataLoggerDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTONSTART, startButton);
 	DDX_Control(pDX, IDC_BUTTONSTOP, stopButton);
 	DDX_Control(pDX, IDC_GRAPH, graphComponent);
+	DDX_Control(pDX, IDC_EDIT1, filePath);
+	DDX_Control(pDX, IDC_CHECKLOGTOFILE, logToFileCheckbox);
 }
 
 BEGIN_MESSAGE_MAP(CMFCMyDAQDataLoggerDlg, CDialogEx)
@@ -97,6 +99,7 @@ BEGIN_MESSAGE_MAP(CMFCMyDAQDataLoggerDlg, CDialogEx)
 	ON_LBN_SELCHANGE(IDC_CHANNELSLIST, &CMFCMyDAQDataLoggerDlg::OnLbnSelchangeChannelslist)
 	ON_CBN_DROPDOWN(IDC_DEVICECOMBO, &CMFCMyDAQDataLoggerDlg::OnCbnDropdownDevicecombo)
 	ON_CBN_SELCHANGE(IDC_DEVICECOMBO, &CMFCMyDAQDataLoggerDlg::OnCbnSelchangeDevicecombo)
+	ON_BN_CLICKED(IDC_BUTTONSELECTFILE, &CMFCMyDAQDataLoggerDlg::OnBnClickedButtonselectfile)
 END_MESSAGE_MAP()
 
 
@@ -213,7 +216,6 @@ void CMFCMyDAQDataLoggerDlg::initGUI()
 
 	graphComponent.setMinV(myDAQ.getMinV());
 	graphComponent.setMaxV(myDAQ.getMaxV());
-	graphComponent.setSamplingRate(myDAQ.getSamplingRate());
 
 	graphComponent.Invalidate();
 
@@ -256,6 +258,7 @@ void CMFCMyDAQDataLoggerDlg::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	myDAQ.setSamplingRate(myDAQ.getSamplingRate() - pNMUpDown->iDelta);
 	updateNumericTextField(&samplingRateTextfield, myDAQ.getSamplingRate(), L"%.f");
+	updateChannels();
 
 	*pResult = 0;
 }
@@ -314,6 +317,7 @@ void CMFCMyDAQDataLoggerDlg::OnEnChangeSamplingrate()
 	CString str;
 	samplingRateTextfield.GetWindowTextW(str);
 	myDAQ.setSamplingRate(atoi((CT2CA)str));
+	updateChannels();
 }
 
 
@@ -366,8 +370,46 @@ UINT run(LPVOID Param) {
 
 	while (dlg->isRunning) {
 		int result = dlg->myDAQ.readChannels();
-		dlg->graphComponent.setChannels(dlg->myDAQ.getChannels());
+		list<MyDAQChannel> channels = dlg->myDAQ.getChannels();
+		dlg->graphComponent.setChannels(channels);
 		dlg->graphComponent.Invalidate();
+		int check = dlg->logToFileCheckbox.GetCheck();
+		if (dlg->logToFileCheckbox.GetCheck()) {
+			FILE *pFile;
+			errno_t err = 0;
+			CString filename;
+			dlg->filePath.GetWindowTextW(filename);
+			err = fopen_s(&pFile, (CT2CA)filename, "r+");
+
+			if (err == 0) {
+				fseek(pFile, 0, SEEK_END);
+				int fileSize = ftell(pFile);
+				list<MyDAQChannel>::iterator it;
+
+				if (fileSize == 0) {
+					for (it = channels.begin(); it != channels.end(); it++) {
+						string channelName = dlg->myDAQ.getMyDAQName() + "/" + (*it).name;
+						fprintf(pFile, "Time;%s", channelName.c_str());
+					}
+					fprintf(pFile, "\n");
+				}
+
+				for (int i = 0; i < dlg->myDAQ.getReadSamps(); i++) {
+					for (it = channels.begin(); it != channels.end(); it++) {
+						MyDAQSample s = (*next((*it).samples.begin(), i));
+						fprintf(pFile, "%s;%f", s.time.c_str(), s.value);
+					}
+					fprintf(pFile, "\n");
+				}
+				fclose(pFile);
+			} else {
+				char errorBuffer[1000] = { '\0' };
+				strerror_s(errorBuffer, 1000, err);
+				string error = errorBuffer;
+				dlg->logToFileCheckbox.SetCheck(0);
+				AfxMessageBox((LPCTSTR)(CA2T)("File error: " + error).c_str());
+			}
+		}
 	}
 
 	return TRUE;
@@ -382,7 +424,7 @@ void CMFCMyDAQDataLoggerDlg::OnBnClickedButtonstart()
 
 	graphComponent.setMinV(myDAQ.getMinV());
 	graphComponent.setMaxV(myDAQ.getMaxV());
-	graphComponent.setSamplingRate(myDAQ.getSamplingRate());
+
 	AfxBeginThread(run, this, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 }
 
@@ -400,10 +442,6 @@ void CMFCMyDAQDataLoggerDlg::enableFields(bool enable)
 	deviceCombobox.EnableWindow(enable);
 	samplingRateTextfield.EnableWindow(enable);
 	samplingRateSpinner.EnableWindow(enable);
-	// minVTextfield.EnableWindow(enable);
-	// minVSpinner.EnableWindow(enable);
-	// maxVTextfield.EnableWindow(enable);
-	// maxVSpinner.EnableWindow(enable);
 }
 
 void CMFCMyDAQDataLoggerDlg::updateChannels() {
@@ -446,4 +484,16 @@ void CMFCMyDAQDataLoggerDlg::OnCbnSelchangeDevicecombo()
 {
 	updateChannelsList();
 	updateChannels();
+}
+
+
+void CMFCMyDAQDataLoggerDlg::OnBnClickedButtonselectfile()
+{
+	string defaultExtension = "", defaultName = "", extensions = "";
+	CFileDialog dlg(true, (LPCTSTR)(CA2T)defaultExtension.c_str(), (LPCTSTR)(CA2T)defaultName.c_str(), OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR, (LPCTSTR)(CA2T)extensions.c_str());
+
+	auto result = dlg.DoModal();
+	if (result == IDOK) {
+		filePath.SetWindowTextW(dlg.GetPathName());
+	}
 }

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define MINSAMPLINGRATE 5
+#define MINSAMPLINGRATE 1
 #define MAXSAMPLINGRATE 10000
 #define MINV -10
 #define MAXV 10
@@ -16,6 +16,7 @@ MyDAQ::MyDAQ()
 	minV = -10;
 	maxV = 10;
 	samplingRate = 1000;
+	sampsToRead = 1000 / 10;
 	reading = false;
 }
 
@@ -37,6 +38,15 @@ void MyDAQ::setSamplingRate(int sr)
 		samplingRate = MINSAMPLINGRATE;
 	else if (sr > MAXSAMPLINGRATE)
 		samplingRate = MAXSAMPLINGRATE;
+
+	if (samplingRate > 500)
+		sampsToRead = samplingRate / 10;
+	else if (samplingRate > 100)
+		sampsToRead = samplingRate / 5;
+	else if (samplingRate > 10)
+		sampsToRead = samplingRate / 2;
+	else
+		sampsToRead = samplingRate;
 }
 
 float MyDAQ::getMinV()
@@ -67,6 +77,11 @@ void MyDAQ::setMaxV(float mv)
 		maxV = MINV;
 	else if (mv > MAXV)
 		maxV = MAXV;
+}
+
+string MyDAQ::getMyDAQName()
+{
+	return myDAQname;
 }
 
 
@@ -104,16 +119,19 @@ int MyDAQ::readChannels()
 
 	int32 err = 0, read = 0, result = 0;
 	DWORD start, end;
-	start = GetTickCount();
-	CTime startTime = CTime::GetCurrentTime();
+	SYSTEMTIME startTime;
+	GetSystemTime(&startTime);
 
-	float64* samples = new float64[(samplingRate / 5)*channels.size()];
+	start = GetTickCount();
+
+	int sampsSize = sampsToRead*channels.size();
+	float64* samples = new float64[sampsSize];
 
 	err = DAQmxStartTask(handle);
 	if (err != 0)
 		result = -1; // error on start task
 
-	err = DAQmxReadAnalogF64(handle, (samplingRate / 5), 10.0, DAQmx_Val_GroupByChannel, samples, (samplingRate / 5)*channels.size(), &read, NULL);
+	err = DAQmxReadAnalogF64(handle, sampsToRead, 10.0, DAQmx_Val_GroupByChannel, samples, sampsSize, &read, NULL);
 	if (err != 0)
 		result = -2; // error on read ai
 
@@ -125,27 +143,50 @@ int MyDAQ::readChannels()
 	if (err != 0)
 		result = -4; // error on stop task
 
-	CTime endTime = CTime::GetCurrentTime();
+	end = GetTickCount();
 
-	list<MyDAQChannel>::iterator it;
-	for (it = channels.begin(); it != channels.end(); it++) {
-		(*it).start = startTime;
-		(*it).end = endTime;
-		int idx = distance(channels.begin(), it);
-		for (int i = 0; i < (samplingRate / 5) * 4; i++) {
-			(*it).samples[i] = (*it).samples[i + (samplingRate / 5)];
-		}
-		for (int i = 0; i < (samplingRate / 5); i++) {
-			(*it).samples[i+(samplingRate / 5) * 4] = samples[i+(idx*(samplingRate / 5))];
+	if (result == 0) {
+		list<MyDAQChannel>::iterator it;
+
+		int dms = (end - start) / sampsToRead;
+		for (it = channels.begin(); it != channels.end(); it++) {
+			int idx = distance(channels.begin(), it);
+			(*it).samples.clear();
+			for (int i = 0; i < sampsToRead; i++) {
+				int currentH = startTime.wHour;
+				int currentM = startTime.wMinute;
+				int currentS = startTime.wSecond;
+				int currentMS = startTime.wMilliseconds + (dms*i);
+				while (currentMS >= 1000) {
+					currentS++;
+					currentMS -= 1000;
+				}
+				while (currentS >= 60) {
+					currentM++;
+					currentS -= 60;
+				}
+				while (currentM >= 60) {
+					currentH++;
+					currentS -= 60;
+				}
+				if (currentH >= 24)
+					currentH = 0;
+
+				MyDAQSample s = {
+					samples[i + (idx*sampsToRead)],
+					to_string(currentH) + ":" + to_string(currentM) + ":" + to_string(currentS) + "," + to_string(currentMS)
+				};
+				(*it).samples.push_back(s);
+			}
 		}
 	}
 
-	end = GetTickCount();
 	reading = false;
 
 	if (result < 0)
 		return result;
-	return (end - start);
+
+	return (end-start);
 }
 
 int MyDAQ::setChannels(CString myDAQ, list<CString> c)
@@ -155,6 +196,7 @@ int MyDAQ::setChannels(CString myDAQ, list<CString> c)
 
 	channels.clear();
 	CString physicalChannel("");
+	myDAQname = (CT2CA)myDAQ;
 
 	list<CString>::iterator it;
 	for (it = c.begin(); it != c.end(); it++) {
@@ -164,7 +206,6 @@ int MyDAQ::setChannels(CString myDAQ, list<CString> c)
 
 		MyDAQChannel m;
 		m.name = string((CT2CA) (*it));
-		m.samples = new float64[samplingRate];
 		channels.push_back(m);
 	}
 
@@ -183,7 +224,7 @@ int MyDAQ::setChannels(CString myDAQ, list<CString> c)
 	if (err != 0)
 		result = -3; // Error on create channel
 
-	err = DAQmxCfgSampClkTiming(handle, NULL, samplingRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, (samplingRate / 5));
+	err = DAQmxCfgSampClkTiming(handle, NULL, samplingRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsToRead);
 	if (err != 0)
 		result = -4; // Error on cfg samp timing
 
@@ -197,4 +238,8 @@ int MyDAQ::setChannels(CString myDAQ, list<CString> c)
 list<MyDAQChannel> MyDAQ::getChannels()
 {
 	return channels;
+}
+
+int MyDAQ::getReadSamps() {
+	return sampsToRead;
 }

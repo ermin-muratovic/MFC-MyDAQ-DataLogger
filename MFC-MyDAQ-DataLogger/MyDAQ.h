@@ -5,11 +5,13 @@
 
 using namespace std;
 
+struct MyDAQSample {
+	float64 value;
+	string time;
+};
 struct MyDAQChannel {
 	string name;
-	float64* samples;
-	CTime start;
-	CTime end;
+	list<MyDAQSample> samples;
 };
 
 class MyDAQ
@@ -18,7 +20,9 @@ private:
 	float minV;
 	float maxV;
 	int samplingRate;
+	int sampsToRead;
 	bool reading, updating;
+	string myDAQname;
 	TaskHandle handle;
 	list<MyDAQChannel> channels;
 
@@ -32,11 +36,13 @@ public:
 	void setMinV(float mv);
 	float getMaxV();
 	void setMaxV(float mv);
+	string getMyDAQName();
 
 	list<string> getConnectedDevices();
 	list<string> splitString(string value, char separator, int spacing);
 	int readChannels();
 	int setChannels(CString myDAQ, list<CString> c);
 	list<MyDAQChannel> getChannels();
+	int getReadSamps();
 };
 

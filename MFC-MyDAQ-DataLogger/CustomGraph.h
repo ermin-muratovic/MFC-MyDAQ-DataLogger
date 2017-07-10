@@ -14,7 +14,6 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 
 public:
-	void setSamplingRate(int sr);
 	void setMinV(float mv);
 	void setMaxV(float mv);
 
